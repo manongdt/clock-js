@@ -34,24 +34,20 @@ function drawClock(canvas){
 	}
 
 	drawClockFace(canvas, rad);
+	updateState(canvas, rad);
 }
 
 //Draw a clock face
 function drawClockFace(canvas, radius){
 	drawClockContour(canvas, radius);
-	var hourArm = new fabric.Rect({
-  		width: 150, 
-  		height: 142, 
-  		fill: 'blue'
-  	});
-	//canvas.add(hourArm);
-
 	drawTimeMarkers(canvas, radius);
 }
 
 //Update the arms' state depending on the time
-function updateState(canvas){
-
+function updateState(canvas, radius){
+	var time = getCurrentTime();
+	drawClockArms(canvas, radius, time.getHours(), time.getMinutes(), time.getSeconds());
+	setTimeout(function(){ updateState(canvas, radius); }, 1000);
 }
 
 //Draw the clock contour in a canvas
@@ -85,7 +81,7 @@ function drawHourMarkers(canvas, radius){
 	var x = radius;
 	var y = 0;
 	for(var i = 0; i < 12; i++){
-		drawRectangle(canvas, radius/15, radius/7, x, y, angle, 'rgb(3,3,3)');
+		drawRectangle(canvas, radius/15, radius/7, x, y, angle, 'rgb(3,3,3)', "top");
 		angle = angle+30;
 		x = radius + Math.sin(angle/180*Math.PI)*radius;
 		y = radius - Math.cos(angle/180*Math.PI)*radius;
@@ -98,7 +94,7 @@ function drawMinuteMarkers(canvas, radius){
 	var x = radius;
 	var y = 0;
 	for(var i = 0; i < 60; i++){
-		drawRectangle(canvas, radius/30, radius/15, x, y, angle, 'rgb(3,3,3)');
+		drawRectangle(canvas, radius/30, radius/15, x, y, angle, 'rgb(3,3,3)', "top");
 		angle = angle+6;
 		x = radius + Math.sin(angle/180*Math.PI)*radius;
 		y = radius - Math.cos(angle/180*Math.PI)*radius;
@@ -106,27 +102,51 @@ function drawMinuteMarkers(canvas, radius){
 }
 
 //Draw the clock arms
-function drawArms(canvas, hour, minutes, seconds){
-
+function drawClockArms(canvas, radius, hour, minutes, seconds){
+	drawHourArm(canvas, radius, hour, minutes);
+	drawMinutesArm(canvas, radius, minutes);
+	drawSecondsArm(canvas, radius, seconds);
 }
 
 //Draw the hour's arm of the clock
-function drawHourArm(canvas, hour, minutes){
-
+function drawHourArm(canvas, radius, hour, minutes){
+	var angle = ( hour % 12 ) * 30 + ( minutes * 0.5 );
+	var armHeight = 0.7 * radius;
+	var armWidth = 0.09 * radius;
+	//Calcul to center the rotation point at the 
+	var ratioCenter = 0.2;
+	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
+	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
+	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,3,3)', "bottom");
 }
 
 //Draw the minutes' arm of the clock
-function drawMinutesArm(minutes){
-
+function drawMinutesArm(canvas, radius, minutes){
+	var angle = minutes * 6;
+	var armHeight = 0.9 * radius;
+	var armWidth = 0.05 * radius;
+	//Calcul to center the rotation point at the 
+	var ratioCenter = 0.2;
+	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
+	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
+	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,3,3)', "bottom");
 }
 
 //Draw the seconds' arm of the clock
-function drawSecondsArm(seconds){
-
+function drawSecondsArm(canvas, radius, seconds){
+	var angle = seconds * 6;
+	var armHeight = 0.98 * radius;
+	var armWidth = 0.01 * radius;
+	//Calcul to center the rotation point at the 
+	var ratioCenter = 0.2;
+	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
+	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
+	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,f,3)', "bottom");
 }
 
+
 //Draw rectangle in a canvas
-function drawRectangle(canvas, width, height, x, y, angle, color){
+function drawRectangle(canvas, width, height, x, y, angle, color, originY){
 	var rect = new fabric.Rect({
 		left: x,
 		top: y,
@@ -135,7 +155,7 @@ function drawRectangle(canvas, width, height, x, y, angle, color){
   		fill: color,
   		angle: angle,
   		originX: "center",
-  		originY: "top"
+  		originY: originY
   	});
   	canvas.add(rect);
 }
