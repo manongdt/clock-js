@@ -17,7 +17,7 @@ function displayCurrentTime(){
 	var secondes = time.getSeconds();
 	$("#time-display").html("<p>"+hour+":"+minutes+":"+secondes+"</p>")
 
-	setTimeout("displayCurrentTime()", 1000);
+	setTimeout("displayCurrentTime()", 400);
 }
 
 //Draw a clock with current time centered in a canvas
@@ -25,6 +25,8 @@ function drawClock(canvas){
 	var cWidth = canvas.getWidth();
 	var cHeight = canvas.getHeight();
 	var rad;
+	//move the arms center regarding the clock center
+	var ratioCenter = 0.2;
 
 	//determine the clock size
 	if(cHeight >= cWidth){
@@ -34,7 +36,8 @@ function drawClock(canvas){
 	}
 
 	drawClockFace(canvas, rad);
-	updateState(canvas, rad);
+	var clockArms = drawClockArms(canvas, rad, ratioCenter);
+	updateState(canvas, clockArms, rad, ratioCenter);
 }
 
 //Draw a clock face
@@ -44,10 +47,22 @@ function drawClockFace(canvas, radius){
 }
 
 //Update the arms' state depending on the time
-function updateState(canvas, radius){
+function updateState(canvas, arms, radius, ratioCenter){
 	var time = getCurrentTime();
-	drawClockArms(canvas, radius, time.getHours(), time.getMinutes(), time.getSeconds());
-	setTimeout(function(){ updateState(canvas, radius); }, 1000);
+	var hour = time.getHours();
+	var minutes = time.getMinutes();
+	var seconds = time.getSeconds();
+
+	var hAngle = ( hour % 12 ) * 30 + ( minutes * 0.5 );
+	var mAngle = minutes * 6;
+	var sAngle = seconds * 6;
+
+	setArmPosition(arms.hourArm, radius, hAngle, ratioCenter);
+	setArmPosition(arms.minArm, radius, mAngle, ratioCenter);
+	setArmPosition(arms.secArm, radius, sAngle, ratioCenter);
+	canvas.renderAll();
+
+	setTimeout(function(){ updateState(canvas, arms, radius, ratioCenter); }, 200);
 }
 
 //Draw the clock contour in a canvas
@@ -102,48 +117,51 @@ function drawMinuteMarkers(canvas, radius){
 }
 
 //Draw the clock arms
-function drawClockArms(canvas, radius, hour, minutes, seconds){
-	drawHourArm(canvas, radius, hour, minutes);
-	drawMinutesArm(canvas, radius, minutes);
-	drawSecondsArm(canvas, radius, seconds);
+function drawClockArms(canvas, radius, ratioCenter){
+	var hArm = drawHourArm(canvas, radius, ratioCenter);
+	var mArm = drawMinutesArm(canvas, radius, ratioCenter);
+	var sArm = drawSecondsArm(canvas, radius, ratioCenter);
+	return {
+		hourArm: hArm, 
+		minArm: mArm,
+		secArm: sArm
+	};
 }
 
 //Draw the hour's arm of the clock
-function drawHourArm(canvas, radius, hour, minutes){
-	var angle = ( hour % 12 ) * 30 + ( minutes * 0.5 );
+function drawHourArm(canvas, radius, ratioCenter){
 	var armHeight = 0.7 * radius;
 	var armWidth = 0.09 * radius;
-	//Calcul to center the rotation point at the 
-	var ratioCenter = 0.2;
-	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
-	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
-	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,3,3)', "bottom");
+	return 	drawRectangle(canvas, armWidth, armHeight, radius, (radius + ratioCenter * radius), 0, 'rgb(102, 153, 255)', "bottom");
 }
 
 //Draw the minutes' arm of the clock
-function drawMinutesArm(canvas, radius, minutes){
-	var angle = minutes * 6;
+function drawMinutesArm(canvas, radius, ratioCenter){
 	var armHeight = 0.9 * radius;
 	var armWidth = 0.05 * radius;
-	//Calcul to center the rotation point at the 
-	var ratioCenter = 0.2;
-	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
-	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
-	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,3,3)', "bottom");
+	return 	drawRectangle(canvas, armWidth, armHeight, radius, (radius + ratioCenter * radius), 0, 'rgb(102, 153, 255)', "bottom");
 }
 
 //Draw the seconds' arm of the clock
-function drawSecondsArm(canvas, radius, seconds){
-	var angle = seconds * 6;
+function drawSecondsArm(canvas, radius, ratioCenter){
 	var armHeight = 0.98 * radius;
 	var armWidth = 0.01 * radius;
-	//Calcul to center the rotation point at the 
-	var ratioCenter = 0.2;
-	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*armHeight;
-	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*armHeight;
-	drawRectangle(canvas, armWidth, armHeight, radius + corrX, radius + corrY, angle, 'rgb(3,f,3)', "bottom");
+	return 	drawRectangle(canvas, armWidth, armHeight, radius, (radius + ratioCenter * radius), 0, 'rgb(102, 153, 255)', "bottom");
 }
 
+//
+function setArmPosition(arm, radius, angle, ratioCenter){
+	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*radius;
+	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*radius;
+	arm.set('angle', angle);
+	setPosition(arm, radius + corrX, radius + corrY);
+}
+
+//
+function setPosition(obj, x, y){
+	obj.set('left', x);
+	obj.set('top', y);
+}
 
 //Draw rectangle in a canvas
 function drawRectangle(canvas, width, height, x, y, angle, color, originY){
@@ -158,6 +176,7 @@ function drawRectangle(canvas, width, height, x, y, angle, color, originY){
   		originY: originY
   	});
   	canvas.add(rect);
+  	return rect;
 }
 
 //Get the current time
