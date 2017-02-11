@@ -1,9 +1,7 @@
 $(document).ready(function(){
 	displayCurrentTime();
 
-	var c = new fabric.StaticCanvas('canvas-clock', {
-		backgroundColor: 'rgb(100,100,200)',
-	});
+	var c = new fabric.StaticCanvas('canvas-clock');
 	drawClock(c);
 });
 
@@ -17,10 +15,10 @@ function displayCurrentTime(){
 	var secondes = time.getSeconds();
 	$("#time-display").html("<p>"+hour+":"+minutes+":"+secondes+"</p>")
 
-	setTimeout("displayCurrentTime()", 400);
+	setTimeout("displayCurrentTime()", 900);
 }
 
-//Draw a clock with current time centered in a canvas
+//Draw a clock with current time in a canvas
 function drawClock(canvas){
 	var cWidth = canvas.getWidth();
 	var cHeight = canvas.getHeight();
@@ -38,6 +36,7 @@ function drawClock(canvas){
 	drawClockFace(canvas, rad);
 	var clockArms = drawClockArms(canvas, rad, ratioCenter);
 	updateState(canvas, clockArms, rad, ratioCenter);
+	setInterval(updateState, 900, canvas, clockArms, rad, ratioCenter);
 }
 
 //Draw a clock face
@@ -62,7 +61,7 @@ function updateState(canvas, arms, radius, ratioCenter){
 	setArmPosition(arms.secArm, radius, sAngle, ratioCenter);
 	canvas.renderAll();
 
-	setTimeout(function(){ updateState(canvas, arms, radius, ratioCenter); }, 200);
+	//setTimeout(function(){ updateState(canvas, arms, radius, ratioCenter); }, 200);
 }
 
 //Draw the clock contour in a canvas
@@ -149,7 +148,7 @@ function drawSecondsArm(canvas, radius, ratioCenter){
 	return 	drawRectangle(canvas, armWidth, armHeight, radius, (radius + ratioCenter * radius), 0, 'rgb(102, 153, 255)', "bottom");
 }
 
-//
+//Set arm position in the clock
 function setArmPosition(arm, radius, angle, ratioCenter){
 	var corrX = -Math.sin(angle/180*Math.PI)*ratioCenter*radius;
 	var corrY = Math.cos(angle/180*Math.PI)*ratioCenter*radius;
@@ -157,7 +156,7 @@ function setArmPosition(arm, radius, angle, ratioCenter){
 	setPosition(arm, radius + corrX, radius + corrY);
 }
 
-//
+//Set position of an object in a canvas
 function setPosition(obj, x, y){
 	obj.set('left', x);
 	obj.set('top', y);
