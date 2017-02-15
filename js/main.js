@@ -1,8 +1,5 @@
 $(document).ready(function(){
-	//displayCurrentTime();
-
 	var c = new fabric.StaticCanvas('canvas-clock');
-
 	drawClock(c);
 });
 
@@ -10,12 +7,10 @@ $(document).ready(function(){
 //Display the current time of the user in a div to check the result
 function displayCurrentTime(){
 	var time = getCurrentTime();
-
 	var hour = time.getHours();
 	var minutes = time.getMinutes();
 	var secondes = time.getSeconds();
-	$("#time-display").html("<p>"+hour+":"+minutes+":"+secondes+"</p>")
-
+	$("#time-display").html("<p>"+hour+":"+minutes+":"+secondes+"</p>");
 	setTimeout("displayCurrentTime()", 900);
 }
 
@@ -24,23 +19,29 @@ function displayCurrentTime(){
 
 //Draw a clock with current time in a canvas
 function drawClock(canvas){
+	//Canvas size
 	var cWidth = canvas.getWidth();
 	var cHeight = canvas.getHeight();
-	//move arms rotation center regarding to the clock center
+	//Ratio to determine the arms rotating center in the clock
 	var ratioCenter = 0.15;
+	//Clock radius
+	var rad = 0;
+	//object containing clock arms 
+	var clockArms = {};
 
-	//Clock radius determined by canvas' size
-	var rad;
+	//Determine clock radius
 	if(cHeight >= cWidth){
 		rad = 0.7 * cWidth/2;
 	}else{
 		rad = 0.7 * cHeight/2;
 	}
+
+	//Draw the clock on the canvas
 	drawClockFace(canvas, rad);
-	var clockArms = drawClockArms(canvas, rad, ratioCenter);
+	clockArms = drawClockArms(canvas, rad, ratioCenter);
 	//Update the time displayed when page loaded
 	updateState(canvas, clockArms, rad, ratioCenter);
-	//Update the time displayed every 900ms
+	//Update the time displayed by the clock every 900ms
 	setInterval(updateState, 900, canvas, clockArms, rad, ratioCenter);
 }
 
@@ -82,7 +83,8 @@ function drawTimeMarkers(canvas, radius, number, width, height){
 	var angle = 0;
 	var x = radius;
 	var y = 0;
-	for(var i = 0; i < number; i++){
+	var i;
+	for(i = 0; i < number; i++){
 		drawRectangle(canvas, width, height, x, y, angle, '#ffffff', "top");
 		angle = angle + (360 / number);
 		x = radius + Math.sin(angle/180*Math.PI)*radius;
@@ -92,13 +94,10 @@ function drawTimeMarkers(canvas, radius, number, width, height){
 
 //Draw clock arms and return an object to manipulate the arms
 function drawClockArms(canvas, radius, ratioCenter){
-	var hArm = drawArm(canvas, radius, ratioCenter, 0.6 * radius, 0.06 * radius, '#0000b3');
-	var mArm = drawArm(canvas, radius, ratioCenter, 0.8 * radius, 0.04 * radius, '#0000b3');
-	var sArm = drawArm(canvas, radius, ratioCenter, 0.95 * radius, 0.02 * radius, '#ffffff');
 	return {
-		hourArm: hArm, 
-		minArm: mArm,
-		secArm: sArm
+		hourArm: drawArm(canvas, radius, ratioCenter, 0.6 * radius, 0.06 * radius, '#0000b3'), 
+		minArm: drawArm(canvas, radius, ratioCenter, 0.8 * radius, 0.04 * radius, '#0000b3'),
+		secArm: drawArm(canvas, radius, ratioCenter, 0.95 * radius, 0.02 * radius, '#ffffff')
 	};
 }
 
